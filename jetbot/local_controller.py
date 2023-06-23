@@ -34,44 +34,44 @@ class LocalController(ipywidgets.VBox):
     def __init__(self, index=0):
         
         pygame.init()
-        
+
         if pygame.joystick.get_count() < 1:
             raise RuntimeError("No joystick devices found.")
-            
+
         try:
             self._joystick = pygame.joystick.Joystick(index)
         except:
             raise RuntimeError("Could not connect to joystick with index {index}".format(index=index))
-        
+
         name = self._joystick.get_name()
         index = self._joystick.get_id()
         num_buttons = self._joystick.get_numbuttons()
         num_axes = self._joystick.get_numaxes()
-        buttons = [Button() for i in range(num_buttons)]
-        axes = [Axis() for i in range(num_axes)]
-        
+        buttons = [Button() for _ in range(num_buttons)]
+        axes = [Axis() for _ in range(num_axes)]
+
         self.set_trait('axes', axes)
         self.set_trait('buttons', buttons)
         self.set_trait('name', name)
         self.set_trait('index', index)
         self.set_trait('connected', True)
-        
+
         axesBox = ipywidgets.HBox(axes)
         buttonsBox = ipywidgets.HBox(buttons)
         nameLabel = ipywidgets.Label(value=name)
-        
+
         self._init_joystick_values()
         self._thread = None
         self._running = False
         self._start()
-        
+
         super().__init__(children=(axesBox, buttonsBox, nameLabel))
         
         
     def _init_joystick_values(self):
         for i in range(self._joystick.get_numaxes()):
             self.axes[i].set_trait('value', _clamp(self._joystick.get_axis(i)))
-        for j in range(self._joystick.get_numbuttons()):
+        for _ in range(self._joystick.get_numbuttons()):
             self.buttons[i].set_trait('value', self._joystick.get_button(i))
             self.buttons[i].set_trait('pressed', self._joystick.get_button(i))
             

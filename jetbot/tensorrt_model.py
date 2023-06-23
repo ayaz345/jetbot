@@ -13,7 +13,7 @@ def torch_dtype_to_trt(dtype):
     elif dtype == torch.float32:
         return trt.float32
     else:
-        raise TypeError('%s is not supported by tensorrt' % dtype)
+        raise TypeError(f'{dtype} is not supported by tensorrt')
 
 
 def torch_dtype_from_trt(dtype):
@@ -26,7 +26,7 @@ def torch_dtype_from_trt(dtype):
     elif dtype == trt.float32:
         return torch.float32
     else:
-        raise TypeError('%s is not supported by torch' % dtype)
+        raise TypeError(f'{dtype} is not supported by torch')
 
 
 def torch_device_to_trt(device):
@@ -35,7 +35,7 @@ def torch_device_to_trt(device):
     elif device.type == torch.device('cpu').type:
         return trt.TensorLocation.HOST
     else:
-        return TypeError('%s is not supported by tensorrt' % device)
+        return TypeError(f'{device} is not supported by tensorrt')
 
 
 def torch_device_from_trt(device):
@@ -44,7 +44,7 @@ def torch_device_from_trt(device):
     elif device == trt.TensorLocation.HOST:
         return torch.device('cpu')
     else:
-        return TypeError('%s is not supported by torch' % device)
+        return TypeError(f'{device} is not supported by torch')
 
     
 class TRTModel(object):
@@ -101,33 +101,31 @@ class TRTModel(object):
     
     def execute(self, *inputs):
         batch_size = inputs[0].shape[0]
-        
+
         bindings = [None] * (len(self.input_names) + len(self.output_names))
-        
+
         # map input bindings
         inputs_torch = [None] * len(self.input_names)
         for i, name in enumerate(self.input_names):
             idx = self.engine.get_binding_index(name)
-            
+
             # convert to appropriate format
             inputs_torch[i] = torch.from_numpy(inputs[i])
             inputs_torch[i] = inputs_torch[i].to(torch_device_from_trt(self.engine.get_location(idx)))
             inputs_torch[i] = inputs_torch[i].type(torch_dtype_from_trt(self.engine.get_binding_dtype(idx)))
-            
+
             bindings[idx] = int(inputs_torch[i].data_ptr())
-            
+
         output_buffers = self.create_output_buffers(batch_size)
-        
+
         # map output bindings
         for i, name in enumerate(self.output_names):
             idx = self.engine.get_binding_index(name)
             bindings[idx] = int(output_buffers[i].data_ptr())
-        
+
         self.context.execute(batch_size, bindings)
-        
-        outputs = [buffer.cpu().numpy() for buffer in output_buffers]
-                                 
-        return outputs
+
+        return [buffer.cpu().numpy() for buffer in output_buffers]
     
     def __call__(self, *inputs):
         return self.execute(*inputs)

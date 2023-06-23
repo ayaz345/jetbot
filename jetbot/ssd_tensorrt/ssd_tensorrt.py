@@ -59,7 +59,7 @@ def _get_feature_map_shape(config):
     width = config.model.ssd.image_resizer.fixed_shape_resizer.width
     fms = []
     curr = int(np.ceil(width / 16.0))
-    for i in range(6):
+    for _ in range(6):
         fms.append(curr)
         curr = int(np.ceil(curr / 2.0))
     return fms
@@ -208,10 +208,7 @@ def ssd_pipeline_to_uff(checkpoint_path, config_path,
     dynamic_graph.remove(
         dynamic_graph.graph_outputs, remove_exclusive_dependencies=False)
 
-    uff_buffer = uff.from_tensorflow(dynamic_graph.as_graph_def(),
-                                     [TRT_OUTPUT_NAME])
-
-    return uff_buffer
+    return uff.from_tensorflow(dynamic_graph.as_graph_def(), [TRT_OUTPUT_NAME])
 
 
 def ssd_uff_to_engine(uff_buffer,

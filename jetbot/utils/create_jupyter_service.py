@@ -24,8 +24,7 @@ JUPYTER_SERVICE_NAME = 'jetbot_jupyter'
 
 def get_jupyter_service(working_directory):
     assert(os.path.isdir(working_directory))
-    service_str = JUPYTER_SERVICE_TEMPLATE % (getpass.getuser(), working_directory)
-    return service_str
+    return JUPYTER_SERVICE_TEMPLATE % (getpass.getuser(), working_directory)
 
 
 if __name__ == '__main__':
